@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlutClock · under the hood</title>
+<style>
+:root{--bg:#0b0e14;--card:#121722;--line:#1f2937;--fg:#dbe4f0;--dim:#6b7a90;--up:#34d399;--acc:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;padding:24px;max-width:1000px;margin:0 auto}
+h1{font-size:18px;letter-spacing:.08em;margin-bottom:2px}
+h2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin:26px 0 10px}
+p{margin:8px 0;max-width:78ch}
+ul{margin:8px 0 8px 20px;max-width:78ch}li{margin:5px 0}
+a{color:var(--acc);text-decoration:none}
+code{background:#0f1420;border:1px solid var(--line);padding:1px 5px;border-radius:4px;font-size:12px;color:#93c5fd}
+pre{background:#0f1420;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-size:11.5px;margin:10px 0;max-width:84ch;line-height:1.45}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:400;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+.dim{color:var(--dim)}
+.note{border-left:3px solid var(--acc);background:#101828;padding:10px 14px;margin:14px 0;border-radius:0 8px 8px 0;max-width:78ch}
+.warn{border-left-color:#fbbf24;background:#1c160b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px}
+.nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:13px}
+.nav a{color:var(--fg)}.nav a:hover{color:var(--acc)}.nav .here{color:var(--acc)}
+footer{margin-top:26px;color:var(--dim);font-size:11px;line-height:1.6}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html">dashboard</a>
+  <a href="about.html">what is this?</a>
+  <a href="guide.html">reading the numbers</a>
+  <a class="here" href="method.html">under the hood</a>
+</nav>
+
+<h1>UNDER THE HOOD</h1>
+<p class="dim">Sources, pipeline, models, validation rules, and the honest limitations.</p>
+
+<div class="card">
+<h2>Pipeline (twice daily on GitHub Actions)</h2>
+<pre>ingest ──► parquet lake ──► features ──► models ──► verdict + predictions.jsonl
+  │            (git)                        │              │
+trendforce scrape                    regime rules    digest.md
+yahoo/stooq quotes                   logistic proxy  web/index.html
+korea customs csv                    momentum p()    pages deploy
+press archive                        baselines       scoreboard eval</pre>
+<p>The git repo is the database: every run commits new rows to
+<code>data/lake/*.parquet</code>, so history accumulates in version control and any day can be replayed.</p>
+</div>
+
+<div class="card">
+<h2>Data sources</h2>
+<table>
+<tr><th>source</th><th>cadence</th><th>what / how</th></tr>
+<tr><td>TrendForce price pages</td><td>daily</td><td>free HTML tables scraped for DRAM spot (DDR5/DDR4/eTT), NAND spot (TLC dies), SSD street prices; pandas table-parse with schema tokens per page</td></tr>
+<tr><td>Yahoo Finance → Stooq fallback</td><td>daily</td><td>31 tickers × 2y backfill: memory makers, demand drivers (NVDA, CSPs…), equipment enablers (ASML…), benchmarks (^SOX, ^KS11, ^TNX)</td></tr>
+<tr><td>Korea Customs Service</td><td>monthly windows</td><td>first-10-day semiconductor export YoY — currently seeded + manual CSV drop-in (<code>data/manual/</code>); API automation planned v1. The best free leading indicator that exists.</td></tr>
+<tr><td>TrendForce press center</td><td>daily</td><td>memory-keyword articles archived verbatim; %QoQ forecast ranges extracted by regex → builds a scoreable record of the industry's own forecasts</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>Feature engineering notes (things that matter)</h2>
+<ul>
+  <li><b>Merged calendars get forward-filled.</b> US/KRX/JPIX holidays create single-row NaNs across
+  a union calendar; naive rolling windows die on them (this bug shipped and was caught on day one).</li>
+  <li><b>The memory basket is built from compounded equal-weight returns</b>, never from averaged
+  prices — averaging prices mixes USD/KRW/JPY levels and breaks the moment a constituent lists.</li>
+  <li><b>No lookahead:</b> features use only data published at or before time t; TrendForce forecast
+  rows are stamped by publication date, never by period covered. Walk-forward evaluation will use
+  purged + embargoed splits (40 trading days) once supervised targets mature.</li>
+  <li><b>Sanity gate:</b> any spot quote jumping ±35% vs its previous value is flagged
+  <code>sanity_ok=false</code>, quarantined from features, and surfaced as an alert — scrapers fail weird sometimes.</li>
+  <li><b>Idempotent upserts:</b> re-running a day never duplicates rows; keys are
+  (series,item,date) / (symbol,date) / (url) / (period,window_type).</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>Models, v0 → v3</h2>
+<table>
+<tr><th>layer</th><th>v0 (now)</th><th>planned</th></tr>
+<tr><td>regime</td><td>deterministic rules on momentum/drawdown states</td><td>Gaussian HMM (3–5 states) + Bayesian online changepoint on spot returns</td></tr>
+<tr><td>direction</td><td>momentum heuristic p = 0.5 + 0.35·tanh(chg₇d/5), clipped</td><td>LightGBM with monotone constraints + isotonic calibration; conformal intervals</td></tr>
+<tr><td>proxy trainer</td><td>logistic regression (StandardScaler, C=0.5) on equity features → P(basket up 5d), chronological 80/20 split</td><td>same harness re-aimed at real contract/spot targets once N ≥ ~60 days</td></tr>
+<tr><td>events</td><td>alerts derived from computed signals only</td><td>LLM event extractor over news/RSS: capex announcements, fab incidents, guidance changes</td></tr>
+<tr><td>consumer layer</td><td>vote rule (see reading-the-numbers)</td><td>expected-savings backtest vs random purchase dates over 2020–2026 cycles</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>Why it can (and can't) beat Wall Street</h2>
+<ul>
+  <li><b>Can't win:</b> speed, order-flow, paid feeds (TrendForce Gold+, IDC trackers). Don't try.</li>
+  <li><b>Can win:</b> slow, public-but-obscure signals — Korean decadal customs prints, capex-event
+  accumulation, spread microstructure (eTT discount, DDR4/DDR5 ratio) — where the edge is reading,
+  not latency, and horizons are weeks-to-quarters.</li>
+  <li><b>Structural break warning:</b> long-term take-or-pay contracts (Micron's ~$100B book, SanDisk's $93.9B)
+  changed cycle dynamics after 2024. Pre-2024 data is down-weighted in principle; treat old-cycle
+  backtests skeptically.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>Honest limitations</h2>
+<div class="note warn"><ul>
+  <li>Physical-price history starts at deployment (TrendForce archives are paywalled) — supervised
+  physical models are cold-starting by construction.</li>
+  <li>Total observable history spans ~5 full memory cycles; statistical power is inherently low.
+  Aim is calibration + early-warning utility, not R².</li>
+  <li>Single-provider dependence on TrendForce's free pages; if their markup changes, adapters break
+  (schema tokens + quarantine alerts limit blast radius).</li>
+  <li>Equity regimes lead physical prices — useful, but never simultaneous.</li>
+  <li>All of it: research tooling. Nothing here is investment advice.</li>
+</ul></div>
+</div>
+
+<footer>Full design contract lives in the repo: SPEC.md (build spec), RESEARCH.md (market dossier). Source: github.com/TanishkBansode/glutclock</footer>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlutClock · what is this?</title>
+<style>
+:root{--bg:#0b0e14;--card:#121722;--line:#1f2937;--fg:#dbe4f0;--dim:#6b7a90;--up:#34d399;--acc:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;padding:24px;max-width:1000px;margin:0 auto}
+h1{font-size:18px;letter-spacing:.08em;margin-bottom:2px}
+h2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin:26px 0 10px}
+h3{font-size:13px;color:var(--acc);margin:18px 0 6px}
+p{margin:8px 0;max-width:78ch}
+ul{margin:8px 0 8px 20px;max-width:78ch}li{margin:5px 0}
+a{color:var(--acc);text-decoration:none}
+code{background:#0f1420;border:1px solid var(--line);padding:1px 5px;border-radius:4px;font-size:12px}
+pre{background:#0f1420;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-size:12px;margin:10px 0;max-width:82ch;line-height:1.45}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:400;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+.dim{color:var(--dim)}
+.note{border-left:3px solid var(--acc);background:#101828;padding:10px 14px;margin:14px 0;border-radius:0 8px 8px 0;max-width:78ch}
+.warn{border-left-color:#fbbf24;background:#1c160b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px}
+.nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:13px}
+.nav a{color:var(--fg)}.nav a:hover{color:var(--acc)}.nav .here{color:var(--acc)}
+footer{margin-top:26px;color:var(--dim);font-size:11px;line-height:1.6}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html">dashboard</a>
+  <a class="here" href="about.html">what is this?</a>
+  <a href="guide.html">reading the numbers</a>
+  <a href="method.html">under the hood</a>
+</nav>
+
+<h1>WHAT IS GLUTCLOCK?</h1>
+<p class="dim">A small automated research desk for one question: <b>when do RAM and SSDs get cheap again?</b></p>
+
+<div class="card">
+<h2>The short version</h2>
+<p>RAM and SSD prices are not set by stores — they are set by a tiny club of factories (Samsung,
+SK hynix, Micron and a few NAND makers) whose products swing through brutal multi-year cycles:
+shortage → price explosion → everyone builds new fabs at once → glut → crash. Since 2025 the AI
+boom has been eating the world's memory supply, and consumer prices roughly doubled. Buying a PC
+became a timing decision.</p>
+<p>GlutClock is a program that wakes up twice a day, reads the same public signals professional
+analysts watch — spot-chip prices, memory-maker stocks, Korean customs export data, industry
+forecast press releases — compresses them into a handful of gauges, and renders a verdict:
+<b>where are we in the cycle</b>, and <b>should you buy components now or wait?</b></p>
+<p>It also writes down a prediction every day and later scores itself against those predictions,
+publicly, against dumb baselines. If its models stop beating a coin flip, the dashboard says so.</p>
+</div>
+
+<h2>Why memory prices swing so violently</h2>
+<ul>
+  <li><b>An oligopoly with fat swings.</b> Three companies sell ~95% of the world's DRAM. When they
+  all misjudge demand in the same direction, there is no market force to soften the landing.</li>
+  <li><b>Fabs take years.</b> Announcing a fab is instant; producing usable chips takes 2–4 years.
+  Supply arrives precisely when the demand that justified it has faded.</li>
+  <li><b>HBM cannibalization.</b> AI accelerator memory (HBM) consumes roughly 3× the wafer
+  capacity per bit of normal DRAM. Every GPU sold silently deletes consumer DRAM supply.</li>
+  <li><b>Panic amplifies both directions.</b> Buyers double-order during shortages (making them look
+  worse) and cancel during gluts (making them worse).</li>
+</ul>
+<pre>shortage → panic buying → PEAK → demand destruction
+        → new fabs tool in (18–30 mo lag) → GLUT (−50%…−80%)
+        → capex cuts → trough → recovery → …repeat</pre>
+
+<h2>Where we are right now (context at deployment, Aug 2026)</h2>
+<ul>
+  <li>Contract DRAM rose ~60% in a single quarter; NAND wafer spot prices stopped rising in July 2026.</li>
+  <li>HBM is sold out through 2026; suppliers say conventional memory stays tight until new fabs land in late 2027–2028.</li>
+  <li>Memory equities crashed 20–47% from June highs <i>despite record earnings</i> — markets price the turn before the shelf price confirms it.</li>
+  <li>PC shipments fell ~11% in 2026; entry-level laptops are disappearing because memory is now ~23% of the bill of materials.</li>
+</ul>
+<div class="note"><b>Translation:</b> expensive-but-stabilizing is the base case into 2027, with genuine
+glut risk concentrated in 2028+ — earlier if AI spending cracks, later if it doesn't. The dashboard's
+job is to notice the inflection early, not to guess it once.</div>
+
+<h2>What GlutClock is not</h2>
+<div class="note warn">
+<ul>
+  <li><b>Not investment advice.</b> It predicts commodity directions with tiny sample sizes; it will be wrong.</li>
+  <li><b>Not a trading system.</b> There is no execution, no broker, no latency game.</li>
+  <li><b>Not clairvoyant.</b> Physical prices lag equity signals by quarters; "regime = contraction" does not mean RAM is cheap tomorrow.</li>
+  <li><b>Not finished.</b> The learned models are cold-starting and say so on the dashboard.</li>
+</ul>
+</div>
+
+<h2>Continue reading</h2>
+<ul>
+  <li><a href="guide.html">Reading the numbers</a> — every card, chart and indicator explained with rules of thumb.</li>
+  <li><a href="method.html">Under the hood</a> — data sources, models, validation rules, and honest limitations.</li>
+</ul>
+
+<footer>GlutClock runs on GitHub Actions twice daily · data: TrendForce free price pages, Yahoo/Stooq, Korea Customs Service, TrendForce press archive · not investment advice.</footer>
+</body>
+</html>

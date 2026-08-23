@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlutClock · reading the numbers</title>
+<style>
+:root{--bg:#0b0e14;--card:#121722;--line:#1f2937;--fg:#dbe4f0;--dim:#6b7a90;--up:#34d399;--acc:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;padding:24px;max-width:1000px;margin:0 auto}
+h1{font-size:18px;letter-spacing:.08em;margin-bottom:2px}
+h2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin:26px 0 10px}
+p{margin:8px 0;max-width:78ch}
+ul{margin:8px 0 8px 20px;max-width:78ch}li{margin:5px 0}
+a{color:var(--acc);text-decoration:none}
+code{background:#0f1420;border:1px solid var(--line);padding:1px 5px;border-radius:4px;font-size:12px;color:#93c5fd}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:400;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+.dim{color:var(--dim)}
+.note{border-left:3px solid var(--acc);background:#101828;padding:10px 14px;margin:14px 0;border-radius:0 8px 8px 0;max-width:78ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px}
+.nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:13px}
+.nav a{color:var(--fg)}.nav a:hover{color:var(--acc)}.nav .here{color:var(--acc)}
+footer{margin-top:26px;color:var(--dim);font-size:11px;line-height:1.6}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html">dashboard</a>
+  <a href="about.html">what is this?</a>
+  <a class="here" href="guide.html">reading the numbers</a>
+  <a href="method.html">under the hood</a>
+</nav>
+
+<h1>READING THE NUMBERS</h1>
+<p class="dim">Every element of the dashboard, what it means, and how to act on it.</p>
+
+<div class="card">
+<h2>1 · Cycle regime (equity-implied)</h2>
+<p>A label for where the <b>stock market</b> thinks the memory cycle is — computed from momentum and
+drawdown of an equal-weight basket of memory-maker shares (Micron, SK hynix, SanDisk, Western
+Digital, Seagate, Samsung). Equities historically lead physical component prices by ~2–3 quarters.</p>
+<table>
+<tr><th>state</th><th>trigger (roughly)</th><th>what it means for you</th></tr>
+<tr><td><code>expansion</code></td><td>uptrend intact, shallow drawdown (&lt;10%)</td><td>component prices rising or about to; worst time to buy</td></tr>
+<tr><td><code>maturing</code></td><td>still rising, but short-term momentum ≪ long-term</td><td>growth decelerating; earliest warning light</td></tr>
+<tr><td><code>peak_risk</code></td><td>momentum rolled over near highs</td><td>market voting downturn before shelves confirm; start waiting</td></tr>
+<tr><td><code>contraction</code></td><td>&gt;25% drawdown from highs</td><td>RAM/SSD are still expensive here! stocks fell first; keep waiting</td></tr>
+<tr><td><code>trough_recovery</code></td><td>≥30% drawdown + momentum turning up</td><td>the classic signal that cheap components arrive 1–2 quarters later</td></tr>
+<tr><td><code>unknown</code></td><td>not enough collected history</td><td>cold start; ignore verdicts for now</td></tr>
+</table>
+<p class="dim">Rule-based in v0 (deliberately transparent). HMM + learned classifiers land in v1/v2 — see under the hood.</p>
+</div>
+
+<div class="card">
+<h2>2 · Consumer advice (BUY / WAIT / NEUTRAL)</h2>
+<p>A vote count, not magic:</p>
+<ul>
+  <li>+1 WAIT if regime ∈ {expansion, maturing, peak_risk}</li>
+  <li>+1 WAIT if Korea export YoY is decelerating (<code>kr_d10_accel &lt; 0</code>)</li>
+  <li>+1 WAIT if NAND spot is flat/down over 7 days (stalling = pre-relief)</li>
+  <li><b>BUY</b> overrides everything when regime = trough_recovery</li>
+  <li><b>WAIT</b> needs ≥2 votes; otherwise NEUTRAL with reasons shown</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>3 · Proxy direction model</h2>
+<p><code>P(memory equities up next 5d)</code> is a logistic regression trained on two years of daily
+equity features. It exists so the scoring machinery works from day one — the real targets (physical
+spot direction) need ~60 days of collected prices before they can be trained on.</p>
+<ul>
+  <li><b>Brier score</b>: mean squared error of probability forecasts on yes/no outcomes.
+  Guessing 50% forever scores ~0.25. Lower = better. The dashboard shows test-set Brier so you can
+  judge it yourself.</li>
+  <li><b>majority baseline acc</b>: accuracy of just always guessing the more common outcome.
+  A model barely above this is telling you it knows almost nothing — which is honest.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>4 · The charts</h2>
+<table>
+<tr><th>chart</th><th>read it as</th></tr>
+<tr><td>DDR5 / NAND spot lines</td><td>wholesale chip prices, USD per die, updated each run. Flat-after-vertical = cycle maturing. Falling for weeks = relief beginning.</td></tr>
+<tr><td>Memory basket vs SOX</td><td>both rebased to 100 at start. Gap widening = money flowing into memory specifically; gap collapsing = rotation out.</td></tr>
+<tr><td>Korea YoY + ΔYoY bars</td><td>export growth (line) and its acceleration (bars). The <b>second derivative is the star</b>: when YoY is huge but bars go negative twice in a row, deceleration is real.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>5 · Indicator table — rules of thumb</h2>
+<table>
+<tr><th>indicator</th><th>definition</th><th>rule of thumb</th></tr>
+<tr><td><code>ddr5_spot</code>, <code>nand512_spot</code></td><td>TrendForce session-average spot price per die (USD). A 16GB DIMM holds eight DDR5 dies; a 1TB SSD holds sixteen 512Gb dies.</td><td>level matters less than slope; watch the 7d changes</td></tr>
+<tr><td><code>*_chg_7d</code></td><td>7-day % change of those spots</td><td>sustained ≤0 while contract prices still rise = divergence (top-ish)</td></tr>
+<tr><td><code>ett_discount</code></td><td>% discount of Taiwan downgraded ("eTT") chips vs brand-name</td><td>wide (&gt;40%) = even junk stock unwanted → weak demand quality; narrowing = shortage reaching every grade</td></tr>
+<tr><td><code>ddr4_ddr5_ratio</code></td><td>DDR4 16Gb ÷ DDR5 16Gb price</td><td>normally &lt;1. Above 1 = end-of-life panic premium on legacy DRAM</td></tr>
+<tr><td><code>spot_breadth</code></td><td>% of tracked chips up on the session</td><td>sustained &lt;40% = stalling tape</td></tr>
+<tr><td><code>kr_d10_yoy</code></td><td>YoY growth of Korea's first-10-day semiconductor exports (customs, published mid-month)</td><td>best free high-frequency proxy for global memory revenue (price × volume)</td></tr>
+<tr><td><code>kr_d10_accel</code></td><td>change in that YoY vs previous window</td><td><b>negative twice in a row = the single most useful early signal GlutClock tracks</b></td></tr>
+<tr><td><code>mem_mom_20d/60d</code></td><td>equal-weight memory-stock returns over 20/60 trading days</td><td>momentum decay order: 20d fades before 60d turns</td></tr>
+<tr><td><code>mem_drawdown</code></td><td>fall from trailing 250-day high</td><td>−25%+ means the market has already voted downturn</td></tr>
+<tr><td><code>rs_mem_sox_60d</code></td><td>memory basket minus SOX, 60-day return spread</td><td>rolling over from strongly positive = memory trade being abandoned</td></tr>
+<tr><td><code>sox_mom_20d</code></td><td>broad semiconductor momentum</td><td>context: is it just memory, or all chips?</td></tr>
+<tr><td><code>rate_10y</code></td><td>US 10-year Treasury yield</td><td>rising yields squeeze long-duration AI trades → cycle risk rises</td></tr>
+<tr><td><code>krx_excess_60d</code></td><td>Samsung+hynix 60d return minus KOSPI</td><td>extreme positive = one trade dominates an entire country index (crowding)</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>6 · Prediction ledger & scoreboard</h2>
+<p>Every run writes its forecasts to an append-only ledger with a hash of the inputs used. When a
+forecast's horizon elapses, the realized outcome is joined back and both the model and the constant
+baseline get scored:</p>
+<ul>
+  <li><b>p_const</b> = always 0.50. It is the enemy. If a model row can't beat it out-of-sample,
+  the scoreboard exposes that permanently.</li>
+  <li>The TrendForce press archive lets GlutClock eventually score the industry's own paid
+  forecasters against reality too — their free releases are captured verbatim each day.</li>
+</ul>
+<div class="note">Calibration beats confidence: a forecast of "70%" should come true about 70% of the
+time. That is the standard the scoreboard is building toward as history accumulates.</div>
+</div>
+
+<footer>GlutClock · not investment advice · probabilities from tiny samples will be wrong sometimes — that's why they're scored publicly.</footer>
+</body>
+</html>

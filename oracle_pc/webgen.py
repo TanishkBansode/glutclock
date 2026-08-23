@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -10,6 +11,7 @@ from . import config, features, models, storage
 _WEB_DIR = config.BASE_DIR / "web"
 _TEMPLATE = Path(__file__).parent / "templates" / "dashboard.html"
 _PLACEHOLDER = "__GLUTCLOCK_PAYLOAD__"
+_STATIC_PAGES = ["about.html", "guide.html", "method.html"]
 
 
 def _basket_and_sox(market: pd.DataFrame) -> dict:
@@ -117,6 +119,8 @@ def build(state: dict | None = None) -> Path:
 
     html = _TEMPLATE.read_text().replace(_PLACEHOLDER, json.dumps(payload, default=str).replace("</", "<\\/"))
     _WEB_DIR.mkdir(parents=True, exist_ok=True)
+    for page in _STATIC_PAGES:
+        shutil.copyfile(_TEMPLATE.parent / page, _WEB_DIR / page)
     out = _WEB_DIR / "index.html"
     out.write_text(html)
     return out

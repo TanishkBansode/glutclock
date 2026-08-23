@@ -12,6 +12,8 @@ body{background:var(--bg);color:var(--fg);font:14px/1.5 ui-monospace,Menlo,Conso
 h1{font-size:18px;letter-spacing:.08em;margin-bottom:2px}
 h2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:16px}
+.nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:13px}
+.nav a{color:var(--fg);text-decoration:none}.nav a:hover{color:var(--acc)}.nav .here{color:var(--acc)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
 .span2{grid-column:span 2}
 .big{font-size:24px;font-weight:700}
@@ -27,6 +29,12 @@ footer{margin-top:24px;color:var(--dim);font-size:11px;line-height:1.6}
 </style>
 </head>
 <body>
+<nav class="nav">
+  <a class="here" href="index.html">dashboard</a>
+  <a href="about.html">what is this?</a>
+  <a href="guide.html">reading the numbers</a>
+  <a href="method.html">under the hood</a>
+</nav>
 <h1>GLUTCLOCK <span class="dim">// memory-cycle monitor</span></h1>
 <div id="gen" class="dim"></div>
 
