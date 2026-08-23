@@ -1,0 +1,16 @@
+{"ts": "2026-08-23T13:37:55+00:00", "source": "markets", "status": "ok", "rows": 20318, "detail": "total=20318 new_days=0 src=yfinance"}
+{"ts": "2026-08-23T13:37:59+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=14"}
+{"ts": "2026-08-23T13:37:59+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
+{"ts": "2026-08-23T13:38:00+00:00", "source": "press", "status": "empty", "rows": 0, "detail": ""}
+{"ts": "2026-08-23T13:43:13+00:00", "source": "markets", "status": "ok", "rows": 20318, "detail": "total=20318 new_days=0 src=yfinance"}
+{"ts": "2026-08-23T13:43:16+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=14"}
+{"ts": "2026-08-23T13:43:16+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
+{"ts": "2026-08-23T13:43:23+00:00", "source": "press", "status": "ok", "rows": 5, "detail": "total=5"}
+{"ts": "2026-08-23T13:45:55+00:00", "source": "markets", "status": "ok", "rows": 20318, "detail": "total=20318 new_days=0 src=yfinance"}
+{"ts": "2026-08-23T13:45:58+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=14"}
+{"ts": "2026-08-23T13:45:58+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
+{"ts": "2026-08-23T13:46:01+00:00", "source": "press", "status": "ok", "rows": 1, "detail": "total=1"}
+{"ts": "2026-08-23T14:05:25+00:00", "source": "markets", "status": "ok", "rows": 20318, "detail": "total=20318 new_days=0 src=yfinance"}
+{"ts": "2026-08-23T14:05:28+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=14"}
+{"ts": "2026-08-23T14:05:28+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
+{"ts": "2026-08-23T14:05:29+00:00", "source": "press", "status": "empty", "rows": 0, "detail": ""}

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlutClock · memory cycle monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b0e14;--card:#121722;--line:#1f2937;--fg:#dbe4f0;--dim:#6b7a90;--up:#34d399;--acc:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:24px;max-width:1200px;margin:0 auto}
+h1{font-size:18px;letter-spacing:.08em;margin-bottom:2px}
+h2{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.span2{grid-column:span 2}
+.big{font-size:24px;font-weight:700}
+.verdict{color:var(--acc)} .buy{color:var(--up)} .wait{color:#fbbf24} .neutral{color:var(--dim)}
+.dim{color:var(--dim);font-size:12px} .num{text-align:right;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-weight:400;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+.alert{background:#22141b;border:1px solid #7f1d1d;color:#fca5a5;border-radius:6px;padding:8px 10px;margin:4px 0;font-size:12px}
+canvas{max-height:240px}
+footer{margin-top:24px;color:var(--dim);font-size:11px;line-height:1.6}
+@media(max-width:700px){.span2{grid-column:auto}}
+</style>
+</head>
+<body>
+<h1>GLUTCLOCK <span class="dim">// memory-cycle monitor</span></h1>
+<div id="gen" class="dim"></div>
+
+<div class="grid">
+  <div class="card"><h2>Cycle regime (equity-implied)</h2><div id="regime" class="big verdict"></div><div id="regimeR" class="dim"></div></div>
+  <div class="card"><h2>Consumer advice</h2><div id="advice" class="big"></div><div id="adviceR" class="dim"></div></div>
+  <div class="card"><h2>Proxy direction model</h2><div id="proxy" class="big"></div><div id="proxyR" class="dim"></div></div>
+</div>
+
+<div class="grid"><div class="card" style="grid-column:1/-1"><h2>Alerts</h2><div id="alerts"></div></div></div>
+
+<div class="grid">
+  <div class="card"><h2>DDR5 16Gb spot (USD)</h2><canvas id="c-ddr5"></canvas></div>
+  <div class="card"><h2>NAND 512Gb TLC spot (USD)</h2><canvas id="c-nand"></canvas></div>
+  <div class="card span2"><h2>Memory basket vs SOX (rebased =100)</h2><canvas id="c-eq"></canvas></div>
+  <div class="card"><h2>Korea D10 semi exports YoY % + ΔYoY (pts)</h2><canvas id="c-kr"></canvas></div>
+</div>
+
+<div class="grid">
+  <div class="card"><h2>Indicators</h2><table id="indTable"></table></div>
+  <div class="card"><h2>Today's predictions</h2><table id="predTable"></table></div>
+  <div class="card span2"><h2>Prediction ledger (latest 30 runs)</h2><table id="ledgerTable"></table></div>
+  <div class="card span2"><h2>Scoreboard vs baselines</h2><table id="scoreTable"></table></div>
+</div>
+
+<footer>Data: TrendForce free price pages · Yahoo/Stooq · Korea Customs Service (manual seed) · TrendForce press archive.
+Physical-price history begins at system deployment; equity features use full deep history.
+Baselines are permanent — a model that cannot beat constant-0.5 is labeled as such. Not investment advice.</footer>
+
+<script>
+const D = __GLUTCLOCK_PAYLOAD__;
+
+document.getElementById('gen').textContent =
+  'generated ' + D.generated + ' UTC · model ' + D.modelVersion;
+document.getElementById('regime').textContent = D.regime.label;
+document.getElementById('regimeR').textContent = D.regime.reason;
+const a = document.getElementById('advice');
+a.textContent = D.advice.label;
+a.className = 'big ' + (D.advice.label === 'BUY' ? 'buy' : D.advice.label === 'WAIT' ? 'wait' : 'neutral');
+document.getElementById('adviceR').textContent = D.advice.reason;
+const px = document.getElementById('proxy');
+if (D.proxy && D.proxy.status === 'ok') {
+  px.textContent = Math.round(D.proxy.p_memory_basket_up_5d * 100) + '%';
+  px.className = 'big verdict';
+  document.getElementById('proxyR').textContent =
+    'P(memory equities up next 5d) · test Brier ' + D.proxy.brier +
+    ' · acc ' + D.proxy.accuracy + ' vs majority ' + D.proxy.majority_baseline_acc +
+    ' (asof ' + D.proxy.asof + ')';
+} else {
+  px.textContent = 'warming up';
+  px.className = 'big neutral';
+  px.title = D.proxy ? D.proxy.status : '';
+}
+
+const al = document.getElementById('alerts');
+al.innerHTML = D.alerts.length
+  ? D.alerts.map(x => '<div class="alert">⚠️ ' + x + '</div>').join('')
+  : '<span class="dim">none</span>';
+
+const indRows = Object.entries(D.snap).sort().map(([k, v]) =>
+  '<tr><td>' + k + '</td><td class="num">' + (v === null ? '-' : v) + '</td></tr>').join('');
+document.getElementById('indTable').innerHTML = '<tr><th>indicator</th><th style="text-align:right">value</th></tr>' + indRows;
+
+document.getElementById('predTable').innerHTML =
+  '<tr><th>target</th><th style="text-align:right">P(model)</th><th style="text-align:right">P(const)</th></tr>' +
+  D.preds.map(p => '<tr><td>' + p.target + '</td><td class="num">' +
+    (p.p_model === null ? '-' : p.p_model.toFixed(2)) + '</td><td class="num">' +
+    Number(p.p_constant).toFixed(2) + '</td></tr>').join('');
+
+document.getElementById('ledgerTable').innerHTML =
+  '<tr><th>date</th><th>target</th><th>p_model</th><th>p_const</th><th>regime</th><th>advice</th></tr>' +
+  [...D.ledger].reverse().map(r =>
+    '<tr><td>' + r.date + '</td><td>' + r.target + '</td><td class="num">' + r.p_model +
+    '</td><td class="num">' + r.p_const + '</td><td>' + r.regime + '</td><td>' + r.advice + '</td></tr>').join('')
+  || '<tr><td colspan="6" class="dim">empty</td></tr>';
+
+document.getElementById('scoreTable').innerHTML =
+  '<tr><th>target</th><th>model</th><th>n</th><th>brier</th><th>accuracy</th></tr>' +
+  (D.scoreboard.length ? D.scoreboard.map(s =>
+    '<tr><td>' + s.target + '</td><td>' + s.model + '</td><td class="num">' + s.n +
+    '</td><td class="num">' + s.brier + '</td><td class="num">' + s.accuracy + '</td></tr>').join('')
+  : '<tr><td colspan="5" class="dim">no scored predictions yet — outcomes pending</td></tr>');
+
+const GRID = {ticks: {color: '#6b7a90'}, grid: {color: '#1f2937'}};
+const OPTS = {responsive: true, maintainAspectRatio: false,
+  plugins: {legend: {labels: {color: '#dbe4f0'}}}, scales: {x: GRID, y: GRID}};
+function line(id, labels, sets, mixed) {
+  const el = document.getElementById(id);
+  if (!el || !labels || !labels.length) {
+    if (el) el.replaceWith(Object.assign(document.createElement('div'),
+      {className: 'dim', textContent: 'collecting data…'}));
+    return;
+  }
+  new Chart(el, {type: 'line', data: {labels,
+    datasets: sets.map(s => ({label: s.label, data: s.data, borderColor: s.color,
+      backgroundColor: s.bg || s.color + '22', fill: !!s.fill, tension: 0.15, pointRadius: 0,
+      yAxisID: s.y2 ? 'y1' : 'y', type: s.bar ? 'bar' : 'line'}))},
+    options: {...OPTS, scales: mixed
+      ? {x: GRID, y: GRID, y1: {position: 'right', ticks: {color: '#fbbf24'}, grid: {drawOnChartArea: false}}}
+      : OPTS}});
+}
+
+line('c-ddr5', D.spots.ddr5?.dates, [{label: 'DDR5 16Gb session avg', data: D.spots.ddr5?.values, color: '#60a5fa', fill: true}]);
+line('c-nand', D.spots.nand512?.dates, [{label: 'NAND 512Gb TLC session avg', data: D.spots.nand512?.values, color: '#34d399', fill: true}]);
+line('c-eq', D.equity.dates, [
+  {label: 'memory basket', data: D.equity.memory, color: '#60a5fa'},
+  {label: 'SOX', data: D.equity.sox, color: '#6b7a90'}]);
+if (D.korea.labels) line('c-kr', D.korea.labels, [
+  {label: 'YoY %', data: D.korea.yoy, color: '#60a5fa'},
+  {label: 'ΔYoY pts', data: D.korea.accel, color: '#fbbf24', bar: true}], true);
+</script>
+</body>
+</html>
