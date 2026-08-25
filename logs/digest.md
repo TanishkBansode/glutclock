@@ -1,9 +1,9 @@
-# GlutClock Daily Digest — 2026-08-24 21:43 UTC
+# GlutClock Daily Digest — 2026-08-25 02:16 UTC
 
 ## Verdict
-- **Cycle regime:** `contraction` — memory equities in deep drawdown (-30%)
-- **Consumer advice:** **NEUTRAL** — Korea export YoY decelerating (-37.7 pts): supply catching up within quarters
-- **Proxy model** P(memory equities up next 5d): **48%** (test Brier 0.2478 vs majority acc 0.528, asof 2026-08-24)
+- **Cycle regime:** `trough_recovery` — drawdown -31% with 20d momentum turning positive
+- **Consumer advice:** **BUY** — equities signal trough; physical prices typically bottom 1-2 quarters later
+- **Proxy model** P(memory equities up next 5d): **55%** (test Brier 0.2464 vs majority acc 0.535, asof 2026-08-25)
 
 ## Key indicators
 | Indicator | Value |
@@ -17,11 +17,11 @@
 | Spot breadth (% items up) | 75.00 |
 | Korea D10 semi exports YoY (%) | 155.40 |
 | Korea YoY acceleration (pts) | -37.70 |
-| Memory basket momentum 20d | 0.03 |
-| Memory basket momentum 60d | -0.12 |
-| Memory basket drawdown from 250d high | -0.30 |
-| Memory basket vs SOX 60d excess | 0.06 |
-| SOX momentum 20d | -0.01 |
+| Memory basket momentum 20d | 0.13 |
+| Memory basket momentum 60d | -0.14 |
+| Memory basket drawdown from 250d high | -0.31 |
+| Memory basket vs SOX 60d excess | 0.10 |
+| SOX momentum 20d | 0.04 |
 | US 10Y yield (%) | 4.70 |
 
 ## Today's predictions (logged to ledger)
@@ -39,7 +39,7 @@
 ## Source status (this run)
 | Source | Status | Rows | Detail |
 |---|---|---|---|
-| markets | ok | 20315 | total=20347 new_days=0 src=yfinance |
+| markets | ok | 20322 | total=20353 new_days=1 src=yfinance |
 | trendforce | ok | 14 | flagged=0 total_rows=42 |
 | korea_customs | ok | 4 | manual+seed; automate via data.go.kr key in v1 |
 | press | empty | 0 |  |
