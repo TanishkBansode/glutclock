@@ -1,25 +1,25 @@
-# GlutClock Daily Digest — 2026-08-27 00:47 UTC
+# GlutClock Daily Digest — 2026-08-27 10:50 UTC
 
 ## Verdict
-- **Cycle regime:** `contraction` — memory equities in deep drawdown (-27%)
+- **Cycle regime:** `contraction` — memory equities in deep drawdown (-28%)
 - **Consumer advice:** **NEUTRAL** — Korea export YoY decelerating (-37.7 pts): supply catching up within quarters
 - **Proxy model** P(memory equities up next 5d): **56%** (test Brier 0.2484 vs majority acc 0.538, asof 2026-08-27)
 
 ## Key indicators
 | Indicator | Value |
 |---|---|
-| DDR5 16Gb spot (USD) | 54.00 |
+| DDR5 16Gb spot (USD) | 53.93 |
 | DDR5 spot chg 7d (%) | - |
 | NAND 512Gb TLC spot (USD) | 21.21 |
 | NAND 512Gb chg 7d (%) | - |
-| DDR5 eTT discount (%) | 56.00 |
+| DDR5 eTT discount (%) | 55.90 |
 | DDR4/DDR5 price ratio | 1.69 |
-| Spot breadth (% items up) | 75.00 |
+| Spot breadth (% items up) | 69.00 |
 | Korea D10 semi exports YoY (%) | 155.40 |
 | Korea YoY acceleration (pts) | -37.70 |
 | Memory basket momentum 20d | 0.09 |
 | Memory basket momentum 60d | -0.09 |
-| Memory basket drawdown from 250d high | -0.27 |
+| Memory basket drawdown from 250d high | -0.28 |
 | Memory basket vs SOX 60d excess | 0.13 |
 | SOX momentum 20d | 0.03 |
 | US 10Y yield (%) | 4.66 |
@@ -40,7 +40,7 @@
 ## Source status (this run)
 | Source | Status | Rows | Detail |
 |---|---|---|---|
-| markets | ok | 20328 | total=20410 new_days=1 src=yfinance |
+| markets | ok | 20328 | total=20411 new_days=0 src=yfinance |
 | trendforce | ok | 14 | flagged=0 total_rows=70 |
 | korea_customs | ok | 4 | manual+seed; automate via data.go.kr key in v1 |
 | press | empty | 0 |  |

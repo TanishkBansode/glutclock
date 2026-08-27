@@ -50,3 +50,7 @@
 {"ts": "2026-08-27T00:47:02+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=70"}
 {"ts": "2026-08-27T00:47:02+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
 {"ts": "2026-08-27T00:47:03+00:00", "source": "press", "status": "empty", "rows": 0, "detail": ""}
+{"ts": "2026-08-27T10:50:29+00:00", "source": "markets", "status": "ok", "rows": 20328, "detail": "total=20411 new_days=0 src=yfinance"}
+{"ts": "2026-08-27T10:50:31+00:00", "source": "trendforce", "status": "ok", "rows": 14, "detail": "flagged=0 total_rows=70"}
+{"ts": "2026-08-27T10:50:31+00:00", "source": "korea_customs", "status": "ok", "rows": 4, "detail": "manual+seed; automate via data.go.kr key in v1"}
+{"ts": "2026-08-27T10:50:32+00:00", "source": "press", "status": "empty", "rows": 0, "detail": ""}
