@@ -1,4 +1,4 @@
-# GlutClock Daily Digest — 2026-08-29 03:09 UTC
+# GlutClock Daily Digest — 2026-08-29 07:35 UTC
 
 ## Verdict
 - **Cycle regime:** `contraction` — memory equities in deep drawdown (-29%)
@@ -40,7 +40,7 @@
 ## Source status (this run)
 | Source | Status | Rows | Detail |
 |---|---|---|---|
-| markets | ok | 20327 | total=20463 new_days=0 src=yfinance |
+| markets | ok | 20309 | total=20463 new_days=0 src=yfinance |
 | trendforce | ok | 14 | flagged=0 total_rows=98 |
 | korea_customs | ok | 4 | manual+seed; automate via data.go.kr key in v1 |
 | press | empty | 0 |  |
